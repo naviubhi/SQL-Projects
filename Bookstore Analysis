@@ -27,6 +27,24 @@ SELECT Book_category, COUNT(Book_category) as Book_Count
 	ORDER BY COUNT(Book_category) DESC
   
   
+-- Converting data type for star rating from string to an integer
+SELECT Title
+      ,Book_category
+      ,ROUND(Price, 2) AS Price
+      ,Stock
+      ,Quantity
+	  ,CASE 
+		WHEN star_rating = 'One' THEN 1
+		WHEN star_rating = 'Two' THEN 2
+		WHEN star_rating = 'Three' THEN 3
+		WHEN star_rating = 'Four' THEN 4
+		WHEN star_rating = 'Five' THEN 5
+		ELSE NULL
+	END AS star_rating
+FROM bookstore.dbo.books_scraped
+ORDER BY star_rating 
+
+
 -- How many books have a five star rating?
 SELECT COUNT (*) as Five_Star_Count
   FROM bookstore.dbo.books_scraped
