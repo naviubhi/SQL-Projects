@@ -49,3 +49,42 @@ ORDER BY star_rating
 SELECT COUNT (*) as Five_Star_Count
   FROM bookstore.dbo.books_scraped
   WHERE Star_rating = 'Five'
+
+
+-- What is the average star rating of all books in the store?
+SELECT ROUND(AVG(CASE 
+			WHEN star_rating = 'One' THEN 1
+			WHEN star_rating = 'Two' THEN 2
+			WHEN star_rating = 'Three' THEN 3
+			WHEN star_rating = 'Four' THEN 4
+			WHEN star_rating = 'Five' THEN 5
+			ELSE NULL
+		END), 2) AS avg_star_rating
+FROM bookstore.dbo.books_scraped
+
+
+-- What is the average star rating of Romance Books?
+SELECT Book_category
+	  ,ROUND(AVG(CASE 
+			WHEN star_rating = 'One' THEN 1
+			WHEN star_rating = 'Two' THEN 2
+			WHEN star_rating = 'Three' THEN 3
+			WHEN star_rating = 'Four' THEN 4
+			WHEN star_rating = 'Five' THEN 5
+			ELSE NULL
+		END), 2) AS avg_star_rating
+FROM bookstore.dbo.books_scraped
+WHERE book_category = 'Romance'
+GROUP BY book_category
+
+
+--Total number of books in stock
+SELECT SUM(quantity) AS quantity_in_stock
+FROM bookstore.dbo.books_scraped
+
+
+--What is the average price of Mystery books?
+SELECT book_category, ROUND(AVG(price),2) as avg_price
+FROM bookstore.dbo.books_scraped
+WHERE book_category = 'Mystery'
+GROUP BY book_category
