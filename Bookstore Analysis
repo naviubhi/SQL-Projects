@@ -88,3 +88,18 @@ SELECT book_category, ROUND(AVG(price),2) as avg_price
 FROM bookstore.dbo.books_scraped
 WHERE book_category = 'Mystery'
 GROUP BY book_category
+
+
+--Which book category has the highest average rating?
+SELECT TOP 1 book_category
+	   ,ROUND(AVG(CASE 
+			WHEN star_rating = 'One' THEN 1
+			WHEN star_rating = 'Two' THEN 2
+			WHEN star_rating = 'Three' THEN 3
+			WHEN star_rating = 'Four' THEN 4
+			WHEN star_rating = 'Five' THEN 5
+			ELSE NULL
+		END), 2) AS avg_star_rating
+FROM bookstore.dbo.books_scraped
+GROUP BY book_category
+ORDER BY avg_star_rating DESC
