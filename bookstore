@@ -1,0 +1,33 @@
+--Finding the most expensive book
+SELECT TOP 1 Title
+      ,Book_category
+      ,Star_rating
+      ,ROUND(Price, 2) AS Price
+      ,Stock
+      ,Quantity
+  FROM bookstore.dbo.books_scraped
+  ORDER BY Price DESC
+  
+  
+--Finding the cheapest book
+SELECT TOP 1 Title
+      ,Book_category
+      ,Star_rating
+      ,ROUND(Price, 2) AS Price
+      ,Stock
+      ,Quantity
+  FROM bookstore.dbo.books_scraped
+  ORDER BY Price
+  
+  
+--Finding the book count for each book category
+SELECT Book_category, COUNT(Book_category) as Book_Count
+  FROM bookstore.dbo.books_scraped
+    GROUP BY Book_category
+	ORDER BY COUNT(Book_category) DESC
+  
+  
+-- How many books have a five star rating?
+SELECT COUNT (*) as Five_Star_Count
+  FROM bookstore.dbo.books_scraped
+  WHERE Star_rating = 'Five'
