@@ -1,0 +1,111 @@
+--Data we will be using
+SELECT *
+	FROM COVID_project..CovidDeaths
+	WHERE continent is not null
+	ORDER BY 1, 2
+
+--Looking at total cases vs total deaths
+--Shows liklihood of dying if you contract COVID in Canada
+SELECT location, date, total_cases, total_deaths, ROUND((total_deaths/total_cases)* 100,2) AS death_percentage
+	FROM COVID_project..CovidDeaths
+	WHERE location = 'Canada'
+	ORDER BY 1,2
+
+--Looking at total cases vs population
+--Shows the percentage of the population that got COVID
+SELECT location, date, total_cases, population, ROUND((total_cases/population)* 100,2) AS percent_infected
+	FROM COVID_project..CovidDeaths
+	WHERE location = 'Canada'
+	ORDER BY 1,2
+
+--Looking at countriess with highest infection rate compared to population
+SELECT location, MAX(total_cases) AS highest_infection_count, population, MAX(ROUND((total_cases/population)* 100,2)) AS percent_infected
+	FROM COVID_project..CovidDeaths
+	GROUP BY location, population
+	ORDER BY 4 DESC
+
+--Showing countries with highest death count per population
+SELECT location, MAX(cast(total_deaths as int)) AS highest_death_count
+	FROM COVID_project..CovidDeaths
+	WHERE continent is not null
+	GROUP BY location
+	ORDER BY 2 DESC
+
+--Breaking it down by continent
+SELECT continent, MAX(cast(total_deaths as int)) AS highest_death_count
+	FROM COVID_project..CovidDeaths
+	WHERE continent is not null
+	GROUP BY continent
+	ORDER BY 2 DESC
+
+--Showing continents with the highest death count per population
+SELECT continent, MAX(cast(total_deaths as int)) AS highest_death_count
+	FROM COVID_project..CovidDeaths
+	WHERE continent is not null
+	GROUP BY continent
+	ORDER BY 2 DESC
+
+--GLOBAL NUMBERS
+--Total new cases vs new deaths across the world each day
+SELECT 
+    date, 
+    SUM(new_cases) as total_new_cases, 
+    SUM(CAST(new_deaths as int)) as total_new_deaths,
+    ROUND(SUM(CAST(new_deaths as int))/SUM(new_cases)*100, 2) as death_percentage
+FROM COVID_project..CovidDeaths
+WHERE continent is not null
+GROUP BY date
+ORDER BY 1,2
+
+--Joining two tables together
+SELECT *
+FROM COVID_project..CovidDeaths death
+JOIN COVID_project..CovidVaccinations vacc
+	ON death.location = vacc.location
+	and death.date = vacc.date
+
+--Looking at total population vs vaccinations (in the world) per day
+SELECT death.continent, death.location, death.date, death.population, vacc.new_vaccinations
+FROM COVID_project..CovidDeaths death
+JOIN COVID_project..CovidVaccinations vacc
+	ON death.location = vacc.location
+	and death.date = vacc.date
+Where death.continent is not null
+ORDER BY 2,3
+
+--Creating a rolling count of total vaccinations for each country
+SELECT death.continent, death.location, death.date, death.population, vacc.new_vaccinations
+	, SUM(CAST(vacc.new_vaccinations as int)) OVER (Partition by death.location ORDER BY death.location, death.date)
+	as roling_count_vaccinated
+FROM COVID_project..CovidDeaths death
+JOIN COVID_project..CovidVaccinations vacc
+	ON death.location = vacc.location
+	and death.date = vacc.date
+Where death.continent is not null
+ORDER BY 2,3
+
+--Looking at total population vs vaccinated with rolling count of vacc in each country
+SELECT death.continent, death.location, death.date, death.population, vacc.new_vaccinations
+	, SUM(CAST(vacc.new_vaccinations as int)) OVER (Partition by death.location ORDER BY death.location, death.date) as rolling_count_vaccinated
+FROM COVID_project..CovidDeaths death
+JOIN COVID_project..CovidVaccinations vacc
+	ON death.location = vacc.location
+	and death.date = vacc.date
+Where death.continent is not null
+ORDER BY 2,3
+
+--Use CTE
+WITH PopvsVacc (continent, location, date, population, new_vaccinations, rolling_count_vaccinated)
+as
+(
+SELECT death.continent, death.location, death.date, death.population, vacc.new_vaccinations
+	, SUM(CAST(vacc.new_vaccinations as int)) OVER (Partition by death.location ORDER BY death.location, death.date) as rolling_count_vaccinated
+FROM COVID_project..CovidDeaths death
+JOIN COVID_project..CovidVaccinations vacc
+	ON death.location = vacc.location
+	and death.date = vacc.date
+Where death.continent is not null
+)
+
+SELECT *, (rolling_count_vaccinated/population)*100 as rolling_percentage_vaccinated
+FROM PopvsVacc
